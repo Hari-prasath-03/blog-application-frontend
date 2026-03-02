@@ -1,10 +1,10 @@
 import { ProfileForm } from "@/components/profile/profile-form";
 import { PasswordForm } from "@/components/profile/password-form";
 import { DeleteAccount } from "@/components/profile/delete-account";
-import { userService } from "@/services/user-service";
+import { getMe } from "@/services/user-service";
 
 export default async function ProfilePage() {
-  const user = await userService.getMe();
+  const user = await getMe();
 
   if (!user) return null;
 

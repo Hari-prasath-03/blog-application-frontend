@@ -16,7 +16,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const [success, setSuccess] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);

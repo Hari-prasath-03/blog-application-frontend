@@ -1,14 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { api } from "@/lib/api-client";
-import { cookies } from "next/headers";
-import {
-  createBlogSchema,
-  updateBlogSchema,
-  createCommentSchema,
-} from "@/types/validation-schemas";
-import { blogService } from "@/services/blog-service";
+import { revalidatePath } from "next/cache";
+import { createBlogSchema, updateBlogSchema } from "@/types/validation-schemas";
+import { getAuthHeaders } from "@/services/user-service";
 
 export async function createBlog(formData: FormData) {
   const title = formData.get("title") as string;
@@ -30,10 +25,10 @@ export async function createBlog(formData: FormData) {
     await api.post(
       "/blogs",
       { title, slug, content, summary },
-      await authHeaders(),
+      await getAuthHeaders(),
     );
-    revalidatePath("/");
     revalidatePath("/my-list");
+    revalidatePath("/feed");
     return { success: true };
   } catch (error) {
     return { error: handleApiError(error, "Failed to create blog") };
@@ -62,11 +57,11 @@ export async function updateBlog(id: string, formData: FormData) {
     await api.patch(
       `/blogs/${id}`,
       { title, slug, content, summary, isPublished },
-      await authHeaders(),
+      await getAuthHeaders(),
     );
-    revalidatePath("/");
     revalidatePath("/my-list");
-    revalidatePath(`/blogs/${id}`);
+    revalidatePath("/feed");
+    revalidatePath(`/feed/${slug}`);
     return { success: true };
   } catch (error) {
     return { error: handleApiError(error, "Failed to update blog") };
@@ -75,47 +70,57 @@ export async function updateBlog(id: string, formData: FormData) {
 
 export async function deleteBlog(id: string) {
   try {
-    await api.delete(`/blogs/${id}`, await authHeaders());
-    revalidatePath("/");
+    await api.delete(`/blogs/${id}`, await getAuthHeaders());
     revalidatePath("/my-list");
+    revalidatePath("/feed");
     return { success: true };
   } catch (error) {
     return { error: handleApiError(error, "Failed to delete blog") };
   }
 }
 
-export async function toggleLikeAction(id: string, isCurrentlyLiked: boolean) {
+export async function toggleLike(id: string, isCurrentlyLiked: boolean) {
   try {
-    const headers = await authHeaders();
-    if (isCurrentlyLiked) {
-      await blogService.unlike(id, headers);
-    } else {
-      await blogService.like(id, headers);
-    }
-    revalidatePath("/");
+    const headers = await getAuthHeaders();
+    if (isCurrentlyLiked) await api.delete(`/blogs/${id}/like`, headers);
+    else await api.post(`/blogs/${id}/like`, {}, headers);
+
     revalidatePath("/feed");
-    revalidatePath("/my-list");
     return { success: true };
   } catch (error) {
-    return { error: handleApiError(error, "Failed to toggle like") };
+    return {
+      error: handleApiError(
+        error,
+        `Failed to ${isCurrentlyLiked ? "unlike" : "like"} story`,
+      ),
+    };
   }
 }
 
-export async function createCommentAction(blogId: string, formData: FormData) {
-  const content = formData.get("content") as string;
-
-  const validation = createCommentSchema.safeParse({ content });
-  if (!validation.success) {
-    return { error: validation.error.issues[0].message };
-  }
-
+export async function createComment(blogId: string, content: string) {
   try {
-    const headers = await authHeaders();
-    await blogService.createComment(blogId, content, headers);
-    revalidatePath(`/stories/${blogId}`); // Since comments are purely on story pages
+    const response = await api.post(
+      `/blogs/${blogId}/comments`,
+      { content },
+      await getAuthHeaders(),
+    );
+    revalidatePath("/feed");
+    return { success: true, data: response.data };
+  } catch (error) {
+    return { error: handleApiError(error, "Failed to post comment") };
+  }
+}
+
+export async function deleteComment(blogId: string, commentId: string) {
+  try {
+    await api.delete(
+      `/blogs/${blogId}/comments/${commentId}`,
+      await getAuthHeaders(),
+    );
+    revalidatePath("/feed");
     return { success: true };
   } catch (error) {
-    return { error: handleApiError(error, "Failed to create comment") };
+    return { error: handleApiError(error, "Failed to delete comment") };
   }
 }
 
@@ -128,15 +133,4 @@ function handleApiError(error: unknown, fallback: string) {
   return Array.isArray(backendMessage)
     ? backendMessage.join(". ")
     : backendMessage || (error instanceof Error ? error.message : fallback);
-}
-
-async function authHeaders() {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value;
-
-  return {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  };
 }

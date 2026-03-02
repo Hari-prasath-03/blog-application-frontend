@@ -14,7 +14,7 @@ export default async function RootPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       <GuestHeader />
-      <main className="pt-24 pb-20">
+      <main className="pt-36">
         <GuestHero />
       </main>
     </div>

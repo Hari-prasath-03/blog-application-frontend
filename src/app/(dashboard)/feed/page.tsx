@@ -1,7 +1,5 @@
-import { blogService } from "@/services/blog-service";
-import { MemberFeed } from "@/components/home/member-feed";
-import { userService } from "@/services/user-service";
-import { redirect } from "next/navigation";
+import Feed from "@/components/home/feed";
+import { getFeed } from "@/services/blog-service";
 
 export default async function FeedPage({
   searchParams,
@@ -11,16 +9,11 @@ export default async function FeedPage({
   const params = await searchParams;
   const page = Number(params.page) || 0;
 
-  const user = await userService.getMe();
-  if (!user) {
-    redirect("/login");
-  }
-
-  const feed = await blogService.getFeed(page, 10);
+  const feed = await getFeed(page, 3);
 
   return (
-    <div className="animate-in fade-in duration-700">
-      <MemberFeed
+    <div className="space-y-12 pb-20">
+      <Feed
         blogs={feed.data}
         currentPage={feed.page}
         totalPages={feed.totalPages}

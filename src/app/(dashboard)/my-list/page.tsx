@@ -1,22 +1,13 @@
-import { blogService } from "@/services/blog-service";
-import { FeedList } from "@/components/blog/feed-list";
-import { userService } from "@/services/user-service";
-import { cookies } from "next/headers";
+import { getMyBlogs } from "@/services/blog-service";
+import FeedList from "@/components/blog/feed-list";
+import { getMe } from "@/services/user-service";
 import { redirect } from "next/navigation";
 
 export default async function MyListPage() {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value;
-  const headers = { Authorization: `Bearer ${accessToken}` };
+  const user = await getMe();
+  if (!user) redirect("/login");
 
-  const [blogs, user] = await Promise.all([
-    blogService.getMyBlogs({ headers }),
-    userService.getMe(),
-  ]);
-
-  if (!user) {
-    redirect("/login");
-  }
+  const blogs = await getMyBlogs();
 
   return (
     <div className="space-y-12 pb-20">
@@ -30,13 +21,7 @@ export default async function MyListPage() {
           </p>
         </div>
 
-        <section>
-          <FeedList
-            blogs={blogs}
-            isEditable={true}
-            currentUser={user || undefined}
-          />
-        </section>
+        <FeedList blogs={blogs} isEditable={true} currentUser={user} />
       </div>
     </div>
   );

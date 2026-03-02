@@ -1,28 +1,28 @@
-import { blogService } from "@/services/blog-service";
 import { BlogForm } from "@/components/blog/blog-form";
-import { userService } from "@/services/user-service";
-import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
+import { getBlogById } from "@/services/blog-service";
+import { redirect } from "next/navigation";
 
 interface EditBlogPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function EditBlogPage({ params }: EditBlogPageProps) {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value;
-  const headers = { Authorization: `Bearer ${accessToken}` };
-
-  const [{ id }, user] = await Promise.all([params, userService.getMe()]);
-  const blog = await blogService.getBlogById(id, { headers });
-
-  if (!blog) {
-    notFound();
-  }
+  const { id } = await params;
+  const blog = await getBlogById(id);
+  if (!blog) return redirect("/my-list");
 
   return (
-    <div className="animate-in fade-in duration-700">
-      <BlogForm initialData={blog} currentUser={user || undefined} />
-    </div>
+    <>
+      <div className="space-y-2 mb-5">
+        <h1 className="text-4xl font-serif font-bold tracking-tight">
+          Edit Story
+        </h1>
+        <p className="text-muted-foreground font-mono text-sm uppercase tracking-widest leading-relaxed">
+          Refine your ideas and share them with the world.
+        </p>
+      </div>
+
+      <BlogForm initialData={blog} />
+    </>
   );
 }

@@ -12,7 +12,7 @@ export function GuestHero() {
         <p className="text-xl md:text-2xl text-foreground font-mono max-w-md opacity-80">
           A professional and secure space to read, write, and grow your ideas.
         </p>
-        <Link href="/register">
+        <Link href="/feed">
           <Button
             size="lg"
             className="px-8 py-4 rounded-full text-lg bg-primary text-primary-foreground hover:opacity-90 transition-all active:scale-95 shadow-xl"

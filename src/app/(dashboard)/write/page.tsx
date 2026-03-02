@@ -1,8 +1,8 @@
 import { BlogForm } from "@/components/blog/blog-form";
-import { userService } from "@/services/user-service";
+import { getMe } from "@/services/user-service";
 
 export default async function WritePage() {
-  const user = await userService.getMe();
+  const user = await getMe();
 
   return (
     <div className="pb-20">

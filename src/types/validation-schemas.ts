@@ -46,7 +46,10 @@ export const updatePasswordSchema = z
   });
 
 export const createBlogSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
+  title: z
+    .string()
+    .min(5, "Title must be at least 5 characters")
+    .regex(/^[a-zA-Z0-9 ]+$/),
   slug: z
     .string()
     .min(1, "Slug is required")

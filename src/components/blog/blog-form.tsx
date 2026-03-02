@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
-import { createBlog, updateBlog } from "@/actions/blog/actions";
-import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Send, Eye, PenLine } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { format } from "date-fns";
 import Link from "next/link";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Blog, User } from "@/types";
+import { createBlog, updateBlog } from "@/actions/blog/actions";
+import { Loader2, ArrowLeft, Send, Eye, PenLine } from "lucide-react";
 import { MarkdownEditor } from "./markdown-editor";
+import { Button } from "@/components/ui/button";
+import { Blog, User } from "@/types";
+import { StoryDetail } from "./story-detail";
 
 interface BlogFormProps {
   initialData?: Blog;
@@ -46,7 +44,7 @@ export function BlogForm({ initialData, currentUser }: BlogFormProps) {
   };
 
   return (
-    <div className="py-12">
+    <form onSubmit={handleSubmit} className="py-12">
       <header className="flex items-center justify-between mb-12">
         <Link
           href="/my-list"
@@ -57,24 +55,23 @@ export function BlogForm({ initialData, currentUser }: BlogFormProps) {
         </Link>
 
         <div className="flex items-center space-x-6">
-          {initialData && (
-            <div className="flex items-center space-x-2.5 px-4 py-2 rounded-full bg-foreground/5 border border-foreground/5 hover:border-primary/20 transition-all cursor-pointer group/publish">
-              <input
-                type="checkbox"
-                name="isPublished"
-                id="isPublished"
-                value="true"
-                defaultChecked={initialData.isPublished}
-                className="w-4 h-4 rounded-sm border-foreground/20 bg-background text-primary focus:ring-offset-0 focus:ring-primary/20 cursor-pointer"
-              />
-              <label
-                htmlFor="isPublished"
-                className="text-[11px] font-bold text-foreground/50 group-hover/publish:text-foreground/80 cursor-pointer select-none uppercase tracking-wider"
-              >
-                Published
-              </label>
-            </div>
-          )}
+          <div className="flex items-center space-x-2.5 px-4 py-2 rounded-full bg-foreground/5 border border-foreground/5 hover:border-primary/20 transition-all cursor-pointer group/publish">
+            <input
+              type="checkbox"
+              name="isPublished"
+              id="isPublished"
+              value="true"
+              defaultChecked={initialData?.isPublished ?? false}
+              className="w-4 h-4 rounded-sm border-foreground/20 bg-background text-primary focus:ring-offset-0 focus:ring-primary/20 cursor-pointer"
+            />
+            <label
+              htmlFor="isPublished"
+              className="text-[11px] font-bold text-foreground/50 group-hover/publish:text-foreground/80 cursor-pointer select-none uppercase tracking-wider"
+            >
+              Published
+            </label>
+          </div>
+
           <button
             type="button"
             onClick={() => setIsPreview(!isPreview)}
@@ -98,47 +95,21 @@ export function BlogForm({ initialData, currentUser }: BlogFormProps) {
         </div>
       </header>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-8 animate-in fade-in slide-in-from-bottom-4"
-      >
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
         {isPreview ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <article className="max-w-3xl mx-auto pb-32">
-              <header className="space-y-8 mb-12">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold leading-[1.1] tracking-tight">
-                  {title || "Untitled Story"}
-                </h1>
-
-                <div className="flex items-center justify-between py-6 border-y border-foreground/5">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary border border-primary/20 uppercase">
-                      {
-                        (initialData?.author?.name ||
-                          currentUser?.name ||
-                          "U")[0]
-                      }
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-base">
-                        {initialData?.author?.name ||
-                          currentUser?.name ||
-                          "Your Name"}
-                      </span>
-                      <span className="text-sm text-foreground/40 font-mono tracking-tighter">
-                        {format(new Date(), "MMMM d, yyyy")} · 5 min read
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </header>
-
-              <div className="prose prose-lg dark:prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {content || "*No content yet...*"}
-                </ReactMarkdown>
-              </div>
-            </article>
+            <StoryDetail
+              blogId={initialData?.id}
+              title={title}
+              content={content}
+              authorName={
+                initialData?.author?.name || currentUser?.name || "Your Name"
+              }
+              publishedAt={initialData?.publishedAt || new Date()}
+              likesCount={initialData?._count?.likes ?? 0}
+              commentsCount={initialData?._count?.comments ?? 0}
+              likedByMe={initialData?.likedByMe ?? false}
+            />
           </div>
         ) : (
           <>
@@ -214,7 +185,7 @@ export function BlogForm({ initialData, currentUser }: BlogFormProps) {
             )}
           </Button>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

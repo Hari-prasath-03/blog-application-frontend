@@ -21,7 +21,7 @@ export default function AuthLayout({
         <Logo />
       </header>
 
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pb-20 w-full">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 w-full">
         <div className="w-full max-w-105 bg-muted/10 border border-border/40 backdrop-blur-sm p-8 md:p-10 rounded-xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700">
           {children}
         </div>

@@ -2,16 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Rss, User, BookOpen, SquarePen, LogOut, LogIn } from "lucide-react";
+import { Rss, User, BookOpen, SquarePen } from "lucide-react";
 import { Logo } from "./logo";
-import { Button } from "@/components/ui/button";
-import { logout } from "@/actions/auth/actions";
 import { cn } from "@/lib/utils";
-import type { User as UserType } from "@/types";
-
-interface SidebarProps {
-  user?: UserType;
-}
 
 const navItems = [
   { label: "Feeds", href: "/feed", icon: Rss },
@@ -20,8 +13,8 @@ const navItems = [
   { label: "Profile", href: "/profile", icon: User },
 ];
 
-export function Sidebar({ user }: SidebarProps) {
-  const pathname = usePathname();
+export function Sidebar() {
+  const path = usePathname().split("/").splice(1);
 
   return (
     <aside className="w-72 h-screen fixed left-0 top-0 border-r border-foreground/5 bg-background flex flex-col p-6 z-50 transition-all duration-300">
@@ -30,14 +23,13 @@ export function Sidebar({ user }: SidebarProps) {
       </div>
 
       <nav className="flex-1 space-y-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
+        {navItems.map(({ href, icon: Icon, label }) => {
+          const isActive = path.includes(href.substring(1));
 
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={href}
+              href={href}
               className={cn(
                 "group flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200",
                 isActive
@@ -60,41 +52,13 @@ export function Sidebar({ user }: SidebarProps) {
                     isActive ? "opacity-100" : "opacity-90",
                   )}
                 >
-                  {item.label}
+                  {label}
                 </span>
               </div>
-              {isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-in zoom-in duration-300" />
-              )}
             </Link>
           );
         })}
       </nav>
-
-      <div className="pt-6 border-t border-foreground/5 mt-auto">
-        {user ? (
-          <form action={logout}>
-            <Button
-              type="submit"
-              variant="ghost"
-              className="w-full justify-start rounded-xl px-4 py-6 text-foreground/40 hover:text-destructive hover:bg-destructive/5 transition-all group"
-            >
-              <LogOut className="w-5 h-5 mr-3 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-bold text-sm">Sign out</span>
-            </Button>
-          </form>
-        ) : (
-          <Link href="/login">
-            <Button
-              variant="ghost"
-              className="w-full justify-start rounded-xl px-4 py-6 text-primary hover:bg-primary/5 transition-all group"
-            >
-              <LogIn className="w-5 h-5 mr-3 group-hover:translate-x-1 transition-transform" />
-              <span className="font-bold text-sm">Sign in</span>
-            </Button>
-          </Link>
-        )}
-      </div>
     </aside>
   );
 }

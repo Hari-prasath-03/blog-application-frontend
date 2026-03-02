@@ -1,26 +1,15 @@
-"use client";
-
-import React from "react";
 import { User as UserIcon, LogOut, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/actions/auth/actions";
-import { User } from "@/types";
+import { getMe } from "@/services/user-service";
 import Link from "next/link";
 
-interface NavbarProps {
-  user?: User;
-}
+export async function Navbar() {
+  const user = await getMe();
 
-export function Navbar({ user }: NavbarProps) {
   return (
     <header className="h-16 fixed top-0 right-0 left-72 bg-background/80 backdrop-blur-md border-b border-foreground/5 z-40 px-8 flex items-center justify-between">
-      <div className="flex items-center space-x-2">
-        <span className="text-xs font-mono text-foreground/40 uppercase tracking-widest font-bold">
-          Dashboard
-        </span>
-      </div>
-
-      <div className="flex items-center space-x-6">
+      <div className="flex flex-1 space-x-6 justify-end">
         <div className="flex items-center space-x-3">
           <div className="flex flex-col items-end">
             <span className="text-sm font-bold text-foreground/80 leading-tight">

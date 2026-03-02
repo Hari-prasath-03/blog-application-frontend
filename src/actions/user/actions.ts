@@ -7,6 +7,7 @@ import {
   updateProfileSchema,
   updatePasswordSchema,
 } from "@/types/validation-schemas";
+import { getAuthHeaders } from "@/services/user-service";
 
 export async function updateProfile(formData: FormData) {
   const name = formData.get("name") as string;
@@ -18,7 +19,7 @@ export async function updateProfile(formData: FormData) {
   }
 
   try {
-    await api.patch("/users/me", { name, email }, await authHeaders());
+    await api.patch("/users/me", { name, email }, await getAuthHeaders());
 
     revalidatePath("/profile");
     return { success: true };
@@ -46,7 +47,7 @@ export async function updatePassword(formData: FormData) {
     await api.patch(
       "/users/me/password",
       { oldPassword, newPassword },
-      await authHeaders(),
+      await getAuthHeaders(),
     );
 
     return { success: true };
@@ -57,7 +58,7 @@ export async function updatePassword(formData: FormData) {
 
 export async function deleteAccount() {
   try {
-    await api.delete("/users/me", await authHeaders());
+    await api.delete("/users/me", await getAuthHeaders());
 
     const cookieStore = await cookies();
     cookieStore.delete("access_token");
@@ -67,17 +68,6 @@ export async function deleteAccount() {
   } catch (error) {
     return { error: handleApiError(error, "Failed to delete account") };
   }
-}
-
-async function authHeaders() {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token")?.value;
-
-  return {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  };
 }
 
 function handleApiError(error: unknown, fallback: string) {
